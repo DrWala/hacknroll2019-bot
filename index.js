@@ -1,45 +1,68 @@
 const Telegraf = require('telegraf')
 const { startCommand } = require('./commands')
 const { userMiddleware, debugMiddleware } = require('./middlewares')
+const Database = require('./firebase')
 
 // For Scenes
+const WizardScene = require('telegraf/scenes/wizard')
+const Markup = require('telegraf/markup') // Get the markup module
 const Stage = require('telegraf/stage')
-const Scene = require('telegraf/scenes/base')
 
 const { session } = Telegraf
 const { BOT_NAME, BOT_TOKEN } = process.env
 
+let db = new Database()
 
-const init = async (bot) => {
+const init = async bot => {
+    const welcomeWizard = new WizardScene(
+        'welcome_wizard',
+        ctx => {
+            ctx.reply(
+                "Hi, what's your date of birth in the following format: DD/MM/YY?"
+            )
+            return ctx.wizard.next()
+        },
+        ctx => {
+            console.log(ctx.update.message.from)
+            ctx.wizard.state.dob = ctx.message.text
+            ctx.wizard.state.user_id = ctx.update.message.from.id
+            ctx.wizard.state.username = ctx.update.message.from.username
+            ctx.reply(`Got it, what's your gender?`)
+            // Go to the following scene
+            return ctx.wizard.next()
+        },
+        ctx => {
+            ctx.wizard.state.gender = ctx.message.text
+            db.create_user(
+                ctx.wizard.state.dob,
+                ctx.wizard.state.gender,
+                ctx.wizard.state.user_id,
+                ctx.wizard.state.username
+            )
+            ctx.reply('Got it. End of convo')
+            // TODO: save to DB via firebase
+            return ctx.scene.leave()
+        }
+    )
 
-  const { enter, leave } = Stage
+    /**
+     * Middlewares
+     */
+    bot.use(session())
+    const stage = new Stage([welcomeWizard], {
+        default: 'welcome_wizard',
+    })
+    bot.use(stage.middleware())
+    bot.use(userMiddleware())
+    bot.use(debugMiddleware())
 
-  const echoScene = new Scene('echo')
-  echoScene.enter((ctx) => ctx.reply('echo scene'))
-  echoScene.leave((ctx) => ctx.reply('exiting echo scene'))
-  echoScene.command('back', leave())
-  echoScene.on('text', (ctx) => ctx.reply(ctx.message.text))
-  echoScene.on('message', (ctx) => ctx.reply('Only text messages please'))
+    /**
+     * Commands
+     */
+    bot.start(startCommand())
 
-  /**
-   * Middlewares
-   */
-  bot.use(session())
-  bot.use(userMiddleware())
-  bot.use(debugMiddleware())
-  const stage = new Stage([echoScene], { ttl: 10 })
-  bot.use(stage.middleware())
-  bot.command('echo', (ctx) => ctx.scene.enter('echo'))
-  bot.on('message', (ctx) => ctx.reply('Try /echo or /greeter'))
-
-  /**
-   * Commands
-   */
-  bot.start(startCommand())
-
-  return bot
+    return bot
 }
-
 
 /**
  * Init bot function.
@@ -48,12 +71,11 @@ const init = async (bot) => {
  * @param {Object} dbConfig The knex connection configuration.
  * @return {Promise<Telegraf>} Bot ready to launch.
  */
-init(new Telegraf(BOT_TOKEN, { username: "LetsCalmBot" }))
-  .then((bot) => {
+init(new Telegraf(BOT_TOKEN, { username: 'LetsCalmBot' })).then(bot => {
     /**
      * Run
      */
     bot.launch()
-  })
+})
 
 module.exports = init
