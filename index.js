@@ -1,23 +1,59 @@
 const Telegraf = require('telegraf')
-const Extra = require('telegraf/extra')
-const Markup = require('telegraf/markup')
-const short = require('short-uuid')
-const my_db = require('./firebase.js')
+const { startCommand } = require('./commands')
+const { userMiddleware, debugMiddleware } = require('./middlewares')
 
-const keyboard = Markup.inlineKeyboard([
-    Markup.urlButton('❤️', 'http://telegraf.js.org'),
-    Markup.callbackButton('Delete', 'delete'),
-])
+// For Scenes
+const Stage = require('telegraf/stage')
+const Scene = require('telegraf/scenes/base')
 
-let db = new my_db()
-db.get_user()
-db.add_user_question(1, 'my_id', { hi: 'bye' })
+const { session } = Telegraf
+const { BOT_NAME, BOT_TOKEN } = process.env
 
-const bot = new Telegraf(process.env.BOT_TOKEN)
-bot.start(ctx => ctx.reply('Hello'))
-bot.help(ctx => ctx.reply('Help message'))
-bot.on('message', ctx =>
-    ctx.telegram.sendCopy(ctx.chat.id, ctx.message, Extra.markup(keyboard))
-)
-bot.action('delete', ({ deleteMessage }) => deleteMessage())
-bot.launch()
+
+const init = async (bot) => {
+
+  const { enter, leave } = Stage
+
+  const echoScene = new Scene('echo')
+  echoScene.enter((ctx) => ctx.reply('echo scene'))
+  echoScene.leave((ctx) => ctx.reply('exiting echo scene'))
+  echoScene.command('back', leave())
+  echoScene.on('text', (ctx) => ctx.reply(ctx.message.text))
+  echoScene.on('message', (ctx) => ctx.reply('Only text messages please'))
+
+  /**
+   * Middlewares
+   */
+  bot.use(session())
+  bot.use(userMiddleware())
+  bot.use(debugMiddleware())
+  const stage = new Stage([echoScene], { ttl: 10 })
+  bot.use(stage.middleware())
+  bot.command('echo', (ctx) => ctx.scene.enter('echo'))
+  bot.on('message', (ctx) => ctx.reply('Try /echo or /greeter'))
+
+  /**
+   * Commands
+   */
+  bot.start(startCommand())
+
+  return bot
+}
+
+
+/**
+ * Init bot function.
+ *
+ * @param {Telegraf} bot The bot instance.
+ * @param {Object} dbConfig The knex connection configuration.
+ * @return {Promise<Telegraf>} Bot ready to launch.
+ */
+init(new Telegraf(BOT_TOKEN, { username: "LetsCalmBot" }))
+  .then((bot) => {
+    /**
+     * Run
+     */
+    bot.launch()
+  })
+
+module.exports = init

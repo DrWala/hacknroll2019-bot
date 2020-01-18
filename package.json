@@ -10,8 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "telegraf": "^3.35.0",
+    "telegraf-router": "^1.0.7",
     "firebase": "^7.7.0",
-    "short-uuid": "^3.1.1",
-    "telegraf": "^3.35.0"
+    "short-uuid": "^3.1.1"
   }
 }
