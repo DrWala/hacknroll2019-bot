@@ -22,53 +22,21 @@ module.exports = class HnrDb {
             username: user_username,
         })
     }
-    get_user(user_id) {
-        this.database.ref(`users/${user_id}`).on(
-            'value',
-            function(snapshot) {
-                return snapshot.val()
-            },
-            function(errorObject) {
-                console.log('The read failed: ' + errorObject.code)
-            }
-        )
+    get_user(user_id, cb) {
+        this.database.ref(`users/${user_id}`).on('value', cb)
     }
     add_user_question(user_id, question_id, question_body) {
         this.database
             .ref(`questions/${user_id}/${question_id}`)
             .set(question_body)
     }
-    get_user_questions(user_id) {
-        this.database.ref(`questions/${user_id}`).on(
-            'value',
-            function(snapshot) {
-                return snapshot.val()
-            },
-            function(errorObject) {
-                console.log('The read failed: ' + errorObject.code)
-            }
-        )
+    get_user_questions(user_id, cb) {
+        this.database.ref(`questions/${user_id}`).on('value', cb)
     }
-    get_user_question_by_id(user_id, question_id) {
-        this.database.ref(`questions/${user_id}/${question_id}`).on(
-            'value',
-            function(snapshot) {
-                return snapshot.val()
-            },
-            function(errorObject) {
-                console.log('The read failed: ' + errorObject.code)
-            }
-        )
+    get_user_question_by_id(user_id, question_id, cb) {
+        this.database.ref(`questions/${user_id}/${question_id}`).on('value', cb)
     }
-    get_user_answers(user_id) {
-        this.database.ref(`answers/${user_id}`).on(
-            'value',
-            function(snapshot) {
-                return snapshot.val()
-            },
-            function(errorObject) {
-                console.log('The read failed: ' + errorObject.code)
-            }
-        )
+    get_user_answers(user_id, cb) {
+        this.database.ref(`answers/${user_id}`).on('value', cb)
     }
 }
