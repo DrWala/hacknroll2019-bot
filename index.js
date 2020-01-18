@@ -17,6 +17,7 @@ const init = async bot => {
     const welcomeWizard = new WizardScene(
         'welcome_wizard',
         ctx => {
+            console.log('IN WELCOME WIZARD')
             ctx.reply(
                 "Hi, what's your date of birth in the following format: DD/MM/YY?"
             )
@@ -49,17 +50,25 @@ const init = async bot => {
      * Middlewares
      */
     bot.use(session())
-    const stage = new Stage([welcomeWizard], {
-        default: 'welcome_wizard',
-    })
+    const stage = new Stage([welcomeWizard])
     bot.use(stage.middleware())
+    // bot.hears('/pick_preset_questions', ctx => {
+    //     console.log("FUCK IM HERE")
+
+    // })
+    bot.command('pick_preset_questions', ctx => {
+        console.log('Trying to get preset questions wizard')
+        
+        // Stage.enter('preset_questions_wizard')
+    })
+    bot.start(ctx => ctx.scene.enter('welcome_wizard'))
     bot.use(userMiddleware())
     bot.use(debugMiddleware())
 
     /**
      * Commands
      */
-    bot.start(startCommand())
+    // bot.start((ctx) => ctx.scene.enter("welcome_wizard"))
 
     return bot
 }

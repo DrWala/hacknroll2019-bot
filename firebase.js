@@ -39,4 +39,10 @@ module.exports = class HnrDb {
     get_user_answers(user_id, cb) {
         this.database.ref(`answers/${user_id}`).on('value', cb)
     }
+    get_preset_questions(cb) {
+        this.database.ref(`preset-questions`).on('value', cb)
+    }
+    get_preset_questions(user_id, qn_arr) {
+        this.database.ref(`users/${user_id}/preset_questions`).set(qn_arr)
+    }
 }
