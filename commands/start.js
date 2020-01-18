@@ -1,9 +1,51 @@
+const Stage = require('telegraf/stage')
+const WizardScene = require('telegraf/scenes/wizard')
+const Markup = require('telegraf/markup')
+const Composer = require('telegraf/composer')
+
+
+const stepHandler = new Composer()
+stepHandler.action('next', (ctx) => {
+  ctx.reply('Step 2. Via inline button')
+  return ctx.wizard.next()
+})
+stepHandler.command('next', (ctx) => {
+  ctx.reply('Step 2. Via command')
+  return ctx.wizard.next()
+})
+stepHandler.use((ctx) => ctx.replyWithMarkdown('Press `Next` button or type /next'))
+
+const superWizard = new WizardScene('super-wizard',
+  (ctx) => {
+    ctx.reply('Step 1', Markup.inlineKeyboard([
+      Markup.urlButton('❤️', 'http://telegraf.js.org'),
+      Markup.callbackButton('➡️ Next', 'next')
+    ]).extra())
+    return ctx.wizard.next()
+  },
+  stepHandler,
+  (ctx) => {
+    ctx.reply('Step 3')
+    return ctx.wizard.next()
+  },
+  (ctx) => {
+    ctx.reply('Step 4')
+    return ctx.wizard.next()
+  },
+  (ctx) => {
+    ctx.reply('Done')
+    return ctx.scene.leave()
+  }
+)
+
 module.exports = () => async (ctx) => {
     if (ctx.chat.type === 'private') {
-      ctx.reply(`Hello!
-  I am a captcha only bot. Add me to your chat and give me admin rights.
-  I will show a captcha message to each newcomer to your chat.
-  Also you can edit messages and a bit of my behavior with /settings command in a chat where you are admin.
-  Created by @piterden`)
+      // Setup stage here
+      // ctx.reply(`
+      //   Hello! ${ctx.from.username}
+      // `)
+      // Greeter scene
+      const stage = new Stage([superWizard], { default: 'super-wizard' })
+      ctx.scene.enter('super-wizard')
     }
-  }
+}
