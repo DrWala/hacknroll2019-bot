@@ -1,15 +1,40 @@
 const Telegraf = require('telegraf')
-const Extra = require('telegraf/extra')
-const Markup = require('telegraf/markup')
+const { startCommand } = require('./commands')
+const { userMiddleware, debugMiddleware } = require('./middlewares')
 
-const keyboard = Markup.inlineKeyboard([
-  Markup.urlButton('❤️', 'http://telegraf.js.org'),
-  Markup.callbackButton('Delete', 'delete')
-])
+const { session } = Telegraf
+const { BOT_NAME, BOT_TOKEN } = process.env
 
-const bot = new Telegraf(process.env.BOT_TOKEN)
-bot.start((ctx) => ctx.reply('Hello'))
-bot.help((ctx) => ctx.reply('Help message'))
-bot.on('message', (ctx) => ctx.telegram.sendCopy(ctx.chat.id, ctx.message, Extra.markup(keyboard)))
-bot.action('delete', ({ deleteMessage }) => deleteMessage())
-bot.launch()
+const init = async (bot) => {
+
+  /**
+   * Middlewares
+   */
+  bot.use(session())
+  bot.use(userMiddleware())
+  bot.use(debugMiddleware())
+
+  /**
+   * Commands
+   */
+  bot.start(startCommand())
+
+  return bot
+}
+
+/**
+ * Init bot function.
+ *
+ * @param {Telegraf} bot The bot instance.
+ * @param {Object} dbConfig The knex connection configuration.
+ * @return {Promise<Telegraf>} Bot ready to launch.
+ */
+init(new Telegraf(BOT_TOKEN, { username: "LetsCalmBot" }))
+  .then((bot) => {
+    /**
+     * Run
+     */
+    bot.startPolling()
+  })
+
+module.exports = init
