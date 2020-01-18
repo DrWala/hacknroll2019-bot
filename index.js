@@ -1,5 +1,4 @@
 const Telegraf = require('telegraf')
-const { startCommand } = require('./commands')
 const { userMiddleware, debugMiddleware } = require('./middlewares')
 const Database = require('./firebase')
 
@@ -46,6 +45,14 @@ const init = async bot => {
         }
     )
 
+    bot.command("stats", (ctx) => {
+      user_id = ctx.update.message.from.id
+      db.get_user(user_id, d => {
+        ctx.reply(`Your name: ${d.val().username}\nYour DOB: ${d.val().dob}\nYour Gender: ${d.val().gender}
+        `)
+      })
+    })
+
     /**
      * Middlewares
      */
@@ -64,11 +71,7 @@ const init = async bot => {
     bot.start(ctx => ctx.scene.enter('welcome_wizard'))
     bot.use(userMiddleware())
     bot.use(debugMiddleware())
-
-    /**
-     * Commands
-     */
-    // bot.start((ctx) => ctx.scene.enter("welcome_wizard"))
+    
 
     return bot
 }
