@@ -123,6 +123,7 @@ GEM
     nokogiri (1.10.7)
       mini_portile2 (~> 2.4.0)
     os (1.0.1)
+    pg (1.2.1)
     pry (0.12.2)
       coderay (~> 1.1.0)
       method_source (~> 0.9.0)
@@ -198,7 +199,6 @@ GEM
       actionpack (>= 4.0)
       activesupport (>= 4.0)
       sprockets (>= 3.0.0)
-    sqlite3 (1.4.2)
     telegram-bot (0.14.3)
       actionpack (>= 4.0, < 6.1)
       activesupport (>= 4.0, < 6.1)
@@ -241,6 +241,7 @@ DEPENDENCIES
   firebase
   jbuilder (~> 2.7)
   listen (>= 3.0.5, < 3.2)
+  pg (>= 0.18, < 2.0)
   pry-rails
   puma (~> 4.1)
   rails (~> 6.0.2, >= 6.0.2.1)
@@ -248,7 +249,6 @@ DEPENDENCIES
   selenium-webdriver
   spring
   spring-watcher-listen (~> 2.0.0)
-  sqlite3 (~> 1.4)
   telegram-bot
   turbolinks (~> 5)
   tzinfo-data
