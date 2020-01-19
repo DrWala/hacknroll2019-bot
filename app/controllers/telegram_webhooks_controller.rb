@@ -114,6 +114,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
         data_json["question"] => data_json["answer"]
       })
 
+      respond_with :message, text: "Got your answer: #{data_json["answer"]}"
     end
 
     private
