@@ -78,9 +78,42 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       preset_questions = firebase.get("preset-questions").body
       user_data = firebase.get("users/#{user_id}").body
       
-      binding.pry
+      user_data["questions-to-ask"].each do |preset_question|
+        question = preset_questions[preset_question]
+        if question["type"] == "mcq"
+          answer_hashes = []
+          question["answers"].each do |answer|
+            answer_hashes.push({
+              'text': answer,
+              'callback_data': {question: preset_question, answer: answer}.to_json
+            })
+          end
+          respond_with :message, text: question["question"], reply_markup: {
+            inline_keyboard: [
+              answer_hashes
+            ]
+          }
+        end
+      end
 
       respond_with :message, text: "Starting your daily messages sequence"
+    end
+
+    def callback_query(data)
+      message = self.payload
+      data_json = JSON.parse(data)
+      
+      # USER SHIT FUCK YOU
+      user_id = message["from"]["id"]
+      
+      # FIREBASE SHIT
+      firebase_url    = 'https://hacknroll-2019.firebaseio.com/'
+      firebase_secret = 'LXM1UqfFrDfE3Ew1mKRvHAXl8wFbhFKNJXv41clY'
+      firebase = Firebase::Client.new(firebase_url, firebase_secret)
+      firebase.update("answers/#{user_id}/#{Time.now.to_i}", {
+        data_json["question"] => data_json["answer"]
+      })
+
     end
 
     private
