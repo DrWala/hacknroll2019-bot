@@ -41,7 +41,7 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       firebase_url    = 'https://hacknroll-2019.firebaseio.com/'
       firebase_secret = 'LXM1UqfFrDfE3Ew1mKRvHAXl8wFbhFKNJXv41clY'
       firebase = Firebase::Client.new(firebase_url, firebase_secret)
-      firebase.set("users/#{user_id}", {
+      firebase.update("users/#{user_id}", {
         age: age
       })
       save_context :get_gender
@@ -59,12 +59,30 @@ class TelegramWebhooksController < Telegram::Bot::UpdatesController
       firebase_url    = 'https://hacknroll-2019.firebaseio.com/'
       firebase_secret = 'LXM1UqfFrDfE3Ew1mKRvHAXl8wFbhFKNJXv41clY'
       firebase = Firebase::Client.new(firebase_url, firebase_secret)
-      firebase.set("users/#{user_id}", {
+      firebase.update("users/#{user_id}", {
         gender: gender
       })
-      respond_with :message, text: "Got it! Set your daily questions in the link here: https://someurl.com/preset?user_id=#{user_id}"
+      respond_with :message, text: "Got it! Set your daily questions in the link here: http://localhost:8080/preset?user_id=#{user_id}"
     end
     
+    def daily!(data = nil, *)
+      message = self.payload
+      
+      # USER SHIT FUCK YOU
+      user_id = message["from"]["id"]
+
+      # FIREBASE SHIT
+      firebase_url    = 'https://hacknroll-2019.firebaseio.com/'
+      firebase_secret = 'LXM1UqfFrDfE3Ew1mKRvHAXl8wFbhFKNJXv41clY'
+      firebase = Firebase::Client.new(firebase_url, firebase_secret)
+      preset_questions = firebase.get("preset-questions").body
+      user_data = firebase.get("users/#{user_id}").body
+      
+      binding.pry
+
+      respond_with :message, text: "Starting your daily messages sequence"
+    end
+
     private
     def with_locale(&block)
       I18n.with_locale(locale_for_update, &block)
